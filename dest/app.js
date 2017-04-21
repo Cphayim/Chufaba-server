@@ -8,15 +8,15 @@ var _bodyParser = require('body-parser');
 
 var _bodyParser2 = _interopRequireDefault(_bodyParser);
 
+var _manage = require('./routers/manage');
+
+var _manage2 = _interopRequireDefault(_manage);
+
 var _product = require('./routers/product');
 
 var _product2 = _interopRequireDefault(_product);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var app = (0, _express2.default)();
-
-// post 请求处理
 
 // 路由模块
 /*
@@ -24,10 +24,16 @@ var app = (0, _express2.default)();
  * @Author: Cphayim 
  * @Date: 2017-04-18 17:42:40 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-21 21:21:27
+ * @Last Modified time: 2017-04-21 23:22:51
  */
 
+var app = (0, _express2.default)();
+// post 请求处理
 app.use(_bodyParser2.default.json());
+// app.use(bodyParser.urlencoded({
+//     extends:false
+// }));
+app.use(_express2.default.static('www'));
 
 // HTTP 跨域响应头
 app.all('*', function (req, res, next) {
@@ -39,6 +45,7 @@ app.all('*', function (req, res, next) {
 });
 
 // 路由挂载
+app.use('/admin', _manage2.default);
 app.use('/product', _product2.default);
 
 // 端口监听

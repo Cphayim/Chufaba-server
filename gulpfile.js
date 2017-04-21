@@ -3,7 +3,7 @@
  * @Author: Cphayim 
  * @Date: 2017-04-12 20:25:31 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-21 21:08:33
+ * @Last Modified time: 2017-04-21 22:40:34
  */
 
 const gulp = require('gulp');
@@ -24,12 +24,13 @@ const rename = require('gulp-rename');
 
 // 监视路径
 const paths = {
-    es6: ['./src/**/*.js']
+    es6: ['./src/**/*.js'],
+    static:['./src/www/**/*.*']
 };
 
-gulp.task('default', ['js']);
+gulp.task('default', ['js','copy']);
 
-// 编译 JavaScript ES6 -> ES5 (path: dev -> www)
+// 编译 JavaScript ES6 -> ES5 
 gulp.task('js',function(){
     return gulp.src(paths.es6)
         // .pipe(sourcemaps.init())
@@ -45,11 +46,14 @@ gulp.task('js',function(){
         .pipe(gulp.dest('./dest/'))
 });
 
-// 复制其他文件 (path: dev -> www)
-// gulp.task('copyOther',function(){
-// })
+// 复制其他文件
+gulp.task('copy',function(){
+    return gulp.src(paths.static)
+        .pipe(gulp.dest('./dest/www/'));
+});
 
 // 监视任务
-gulp.task('watch', ['js'], function () {
+gulp.task('watch', ['js','copy'], function () {
     gulp.watch(paths.es6, ['js']);
+    gulp.watch(paths.static, ['copy']);
 });

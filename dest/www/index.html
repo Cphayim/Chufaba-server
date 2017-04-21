@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>后台管理页面</title>
+</head>
+
+<body>
+    <h1>出发吧 后台管理</h1>
+    <textarea id="content" placeholder="添加 JSON 数据" rows="20" cols="50"></textarea>
+    <div>
+        <br>
+        <input type="radio" name="checkType" value="discovery" id="discovery" checked><label for="discovery">精选</label>
+        <br>
+        <input type="radio" name="checkType" value="journal" id="journal"><label for="journal">旅行日程</label>
+    </div>
+    <button id="submit">提交</button>
+    <script src="./jquery-3.1.1.js"></script>
+    <script>
+        $('#submit').on('click', function () {
+            var checkType = $('input:radio[name="checkType"]:checked').val();
+            // var contentObj = JSON.parse($('#content').val());
+            var contentObj = JSON.parse($('#content').val());
+            console.log(contentObj);
+            $.ajax({
+                type: "post",
+                url: "/admin/"+checkType,
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(contentObj),
+                // dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (message) {
+                    $("#request-process-patent").html("提交数据失败！");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

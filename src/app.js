@@ -3,18 +3,22 @@
  * @Author: Cphayim 
  * @Date: 2017-04-18 17:42:40 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-21 21:22:58
+ * @Last Modified time: 2017-04-21 23:22:51
  */
 
 import express from 'express'
 import bodyParser from 'body-parser'
 // 路由模块
+import manage from './routers/manage'
 import product from './routers/product'
 
 const app = express();
-
 // post 请求处理
 app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({
+//     extends:false
+// }));
+app.use(express.static('www'));
 
 // HTTP 跨域响应头
 app.all('*', function (req, res, next) {
@@ -27,6 +31,7 @@ app.all('*', function (req, res, next) {
 });
 
 // 路由挂载
+app.use('/admin', manage);
 app.use('/product', product);
 
 // 端口监听
