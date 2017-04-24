@@ -6,14 +6,15 @@ var _mongoose2 = _interopRequireDefault(_mongoose);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var DB_PROTOCOL = 'mongodb'; /*
-                              * 数据库配置模块
-                              * @Author: Cphayim 
-                              * @Date: 2017-04-21 20:28:21 
-                              * @Last Modified by: Cphayim
-                              * @Last Modified time: 2017-04-21 23:26:08
-                              */
+_mongoose2.default.Promise = Promise; /*
+                                       * 数据库配置模块
+                                       * @Author: Cphayim 
+                                       * @Date: 2017-04-21 20:28:21 
+                                       * @Last Modified by: Cphayim
+                                       * @Last Modified time: 2017-04-24 15:14:15
+                                       */
 
+var DB_PROTOCOL = 'mongodb';
 var DB_HOST = '127.0.0.1';
 var DB_PORT = '27017';
 var DB_NAME = 'chufaba';

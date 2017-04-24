@@ -3,7 +3,7 @@
  * @Author: Cphayim 
  * @Date: 2017-04-18 17:42:40 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-21 23:22:51
+ * @Last Modified time: 2017-04-24 20:56:18
  */
 
 import express from 'express'
@@ -11,6 +11,8 @@ import bodyParser from 'body-parser'
 // 路由模块
 import manage from './routers/manage'
 import product from './routers/product'
+import user from './routers/user'
+
 
 const app = express();
 // post 请求处理
@@ -33,6 +35,7 @@ app.all('*', function (req, res, next) {
 // 路由挂载
 app.use('/admin', manage);
 app.use('/product', product);
+app.use('/user', user);
 
 // 端口监听
 app.listen(3000, () => console.log('Chufaba Server is Running.'));

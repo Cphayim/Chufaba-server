@@ -3,10 +3,11 @@
  * @Author: Cphayim 
  * @Date: 2017-04-21 20:28:21 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-21 23:26:08
+ * @Last Modified time: 2017-04-24 15:14:15
  */
 import mongoose from 'mongoose'
 
+mongoose.Promise = Promise;
 const DB_PROTOCOL = 'mongodb';
 const DB_HOST = '127.0.0.1';
 const DB_PORT = '27017';
