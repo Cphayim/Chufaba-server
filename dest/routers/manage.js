@@ -10,8 +10,6 @@ var _express2 = _interopRequireDefault(_express);
 
 var _db = require('../modules/db');
 
-var _db2 = _interopRequireDefault(_db);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // 响应错误信息的模块
@@ -22,7 +20,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @Author: Cphayim 
  * @Date: 2017-04-21 22:26:25 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-30 19:08:56
+ * @Last Modified time: 2017-04-30 19:24:05
  */
 
 var router = _express2.default.Router();
@@ -30,7 +28,7 @@ var router = _express2.default.Router();
 
 
 router.post('/discovery', function (req, res) {
-    var discovery = new _db2.default.Discovery(req.body);
+    var discovery = new _db.Discovery(req.body);
     discovery.save(function (err, data) {
         if (err) {
             res.send('失败');
@@ -40,7 +38,7 @@ router.post('/discovery', function (req, res) {
     });
 });
 router.post('/journal', function (req, res) {
-    var journal = new _db2.default.Journal(req.body);
+    var journal = new _db.Journal(req.body);
     journal.save(function (err, data) {
         if (err) {
             res.send('失败');

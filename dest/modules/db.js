@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.User = exports.Journal = exports.Discovery = undefined;
 
 var _mongoose = require('mongoose');
 
@@ -12,19 +13,27 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 _mongoose2.default.Promise = Promise; /*
                                        * 数据库配置模块
+                                       * 数据库连接、集合结构Schema、集合Model实例导出
                                        * @Author: Cphayim 
                                        * @Date: 2017-04-21 20:28:21 
                                        * @Last Modified by: Cphayim
-                                       * @Last Modified time: 2017-04-30 19:09:17
+                                       * @Last Modified time: 2017-04-30 19:33:35
                                        */
 
 var DB_PROTOCOL = 'mongodb',
-    DB_HOST = '127.0.0.1',
-    DB_PORT = '27017',
-    DB_NAME = 'chufaba',
-    DB_ACCOUNT = '',
-    DB_PASS = '',
-    DB_URL = DB_ACCOUNT && DB_PASS ? DB_PROTOCOL + '://' + DB_ACCOUNT + ':' + DB_PASS + '@' + DB_HOST + ':' + DB_PORT + '/' + DB_NAME : DB_PROTOCOL + '://' + DB_HOST + ':' + DB_PORT + '/' + DB_NAME;
+    // 协议
+DB_HOST = '127.0.0.1',
+    // 主机名
+DB_PORT = '27017',
+    // 端口号
+DB_NAME = 'chufaba',
+    // 数据库名
+DB_ACCOUNT = '',
+    // 数据库账号
+DB_PASS = '',
+    // 数据库密码
+// 是否使用 Auth 模式的 URL 
+DB_URL = DB_ACCOUNT && DB_PASS ? DB_PROTOCOL + '://' + DB_ACCOUNT + ':' + DB_PASS + '@' + DB_HOST + ':' + DB_PORT + '/' + DB_NAME : DB_PROTOCOL + '://' + DB_HOST + ':' + DB_PORT + '/' + DB_NAME;
 
 // 连接数据库
 _mongoose2.default.connect(DB_URL);
@@ -101,15 +110,15 @@ var userSchema = new Schema({
 var User = _mongoose2.default.model('User', userSchema);
 
 // 连接状态监听
-_mongoose2.default.connection.on('connected', function () {
-    console.log('chufaba mongodb connected,  port: ' + DB_PORT);
-}).on('error', function () {
-    console.log('chufaba mongodb failed,  port: ' + DB_PORT);
-}).on('disconnected', function () {
-    console.log('chufaba mongodb disconnected,  port: ' + DB_PORT);
+_mongoose2.default.connection.on('connected', function (_) {
+    console.log('chufaba mongodb connected, port: ' + DB_PORT);
+}).on('error', function (_) {
+    console.log('chufaba mongodb failed, port: ' + DB_PORT);
+}).on('disconnected', function (_) {
+    console.log('chufaba mongodb disconnected, port: ' + DB_PORT);
 });;
 
-exports.default = {
-    Discovery: Discovery,
-    Journal: Journal
-};
+// 模块导出
+exports.Discovery = Discovery;
+exports.Journal = Journal;
+exports.User = User;

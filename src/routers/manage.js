@@ -3,19 +3,19 @@
  * @Author: Cphayim 
  * @Date: 2017-04-21 22:26:25 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-30 19:08:56
+ * @Last Modified time: 2017-04-30 19:24:05
  */
 
 import express from 'express'
 // 数据库连接模块
-import DB from '../modules/db'
+import { Discovery, Journal } from '../modules/db'
 // 响应错误信息的模块
 
 // 创建路由
 const router = express.Router();
 
 router.post('/discovery', (req, res) => {
-    const discovery = new DB.Discovery(req.body);
+    const discovery = new Discovery(req.body);
     discovery.save(function (err, data) {
         if (err) {
             res.send('失败');
@@ -25,7 +25,7 @@ router.post('/discovery', (req, res) => {
     })
 });
 router.post('/journal', (req, res) => {
-    const journal = new DB.Journal(req.body);
+    const journal = new Journal(req.body);
     journal.save(function (err, data) {
         if (err) {
             res.send('失败');
