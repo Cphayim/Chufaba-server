@@ -1,5 +1,9 @@
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
 var _express = require('express');
 
 var _express2 = _interopRequireDefault(_express);
@@ -18,7 +22,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @Author: Cphayim 
  * @Date: 2017-04-21 22:26:25 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-21 23:37:20
+ * @Last Modified time: 2017-04-30 19:08:56
  */
 
 var router = _express2.default.Router();
@@ -47,4 +51,4 @@ router.post('/journal', function (req, res) {
 });
 
 // 导出模块
-module.exports = router;
+exports.default = router;

@@ -3,7 +3,7 @@
  * @Author: Cphayim 
  * @Date: 2017-04-21 22:26:25 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-21 23:37:20
+ * @Last Modified time: 2017-04-30 19:08:56
  */
 
 import express from 'express'
@@ -36,4 +36,4 @@ router.post('/journal', (req, res) => {
 })
 
 // 导出模块
-module.exports = router;
+export default router;

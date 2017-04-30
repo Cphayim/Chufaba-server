@@ -2,9 +2,11 @@
 # http://git-scm.com/docs/gitignore
 
 node_modules/
+
 platforms/
+
 plugins/
 
-src/routers/user.js
+dest/modules/config.js
 
-dest/routers/user.js
+src/modules/config.js
