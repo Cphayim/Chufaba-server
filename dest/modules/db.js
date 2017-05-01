@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.User = exports.Journal = exports.Discovery = undefined;
+exports.User = exports.Market = exports.Journal = exports.Discovery = undefined;
 
 var _mongoose = require('mongoose');
 
@@ -17,7 +17,7 @@ _mongoose2.default.Promise = Promise; /*
                                        * @Author: Cphayim 
                                        * @Date: 2017-04-21 20:28:21 
                                        * @Last Modified by: Cphayim
-                                       * @Last Modified time: 2017-04-30 19:33:35
+                                       * @Last Modified time: 2017-05-01 03:41:32
                                        */
 
 var DB_PROTOCOL = 'mongodb',
@@ -96,6 +96,17 @@ var journalSchema = new Schema({
 });
 var Journal = _mongoose2.default.model('Journal', journalSchema);
 
+// 购买 数据集合结构
+var marketSchema = new Schema({
+    banners: Array,
+    destinations: Array,
+    products: Array
+}, {
+    versionKey: false,
+    collection: 'market'
+});
+var Market = _mongoose2.default.model('Market', marketSchema);
+
 // 用户 数据集合结构
 var userSchema = new Schema({
     phone: Number,
@@ -121,4 +132,5 @@ _mongoose2.default.connection.on('connected', function (_) {
 // 模块导出
 exports.Discovery = Discovery;
 exports.Journal = Journal;
+exports.Market = Market;
 exports.User = User;
