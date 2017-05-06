@@ -3,15 +3,15 @@
  * @Author: Cphayim 
  * @Date: 2017-04-18 17:42:40 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-30 21:49:26
+ * @Last Modified time: 2017-05-06 17:42:05
  */
 
 import express from 'express'
 import bodyParser from 'body-parser'
 // 路由模块
+import user from './routers/user'
 import manage from './routers/manage'
 import product from './routers/product'
-import user from './routers/user'
 
 const app = express();
 // post 请求体处理
@@ -27,9 +27,10 @@ app.all('*', function (req, res, next) {
 });
 
 // 路由挂载
+app.use('/user', user);
 app.use('/admin', manage);
 app.use('/product', product);
-app.use('/user', user);
+
 
 app.get('/', (req, res) => {
     // 301 重定向

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.User = exports.Market = exports.Journal = exports.Discovery = undefined;
+exports.SMS = exports.User = exports.Market = exports.Journal = exports.Discovery = undefined;
 
 var _mongoose = require('mongoose');
 
@@ -17,7 +17,7 @@ _mongoose2.default.Promise = Promise; /*
                                        * @Author: Cphayim 
                                        * @Date: 2017-04-21 20:28:21 
                                        * @Last Modified by: Cphayim
-                                       * @Last Modified time: 2017-05-01 03:41:32
+                                       * @Last Modified time: 2017-05-06 23:13:44
                                        */
 
 var DB_PROTOCOL = 'mongodb',
@@ -28,9 +28,9 @@ DB_PORT = '27017',
     // 端口号
 DB_NAME = 'chufaba',
     // 数据库名
-DB_ACCOUNT = '',
+DB_ACCOUNT = 'cfbworker',
     // 数据库账号
-DB_PASS = '',
+DB_PASS = '123456',
     // 数据库密码
 // 是否使用 Auth 模式的 URL 
 DB_URL = DB_ACCOUNT && DB_PASS ? DB_PROTOCOL + '://' + DB_ACCOUNT + ':' + DB_PASS + '@' + DB_HOST + ':' + DB_PORT + '/' + DB_NAME : DB_PROTOCOL + '://' + DB_HOST + ':' + DB_PORT + '/' + DB_NAME;
@@ -109,28 +109,44 @@ var Market = _mongoose2.default.model('Market', marketSchema);
 
 // 用户 数据集合结构
 var userSchema = new Schema({
-    phone: Number,
-    username: String,
-    password: String,
-    pass_salt: String,
-    user_token: String
+    phone: String, // 手机号码, 辅键, 唯一
+    password: String, // 密码 (前端MD5 -> 后端密码盐+MD5)
+    password_salt: String, // 密码盐 (随机盐)
+    username: String, // 用户名
+    avatar: String, // 头像 URL 地址
+    access_token: String, // 口令 (授权码)，cookie
+    register_time: Number, // 注册时间戳，注册表单接口响应成功时的服务器时间
+    last_time: Number, // 最后登录时间戳，最后一次提交登录表单的服务器时间
+    permission: Number // 权限等级
 }, {
     versionKey: false,
     collection: 'user'
 });
 var User = _mongoose2.default.model('User', userSchema);
 
+// 验证码 数据集合结构
+var smsSchema = new Schema({
+    phone: String,
+    vCode: String
+}, {
+    versionKey: false,
+    collection: 'sms'
+});
+var SMS = _mongoose2.default.model('SMS', smsSchema);
+
 // 连接状态监听
 _mongoose2.default.connection.on('connected', function (_) {
-    console.log('chufaba mongodb connected, port: ' + DB_PORT);
+    return console.log('chufaba mongodb connected, port: ' + DB_PORT);
 }).on('error', function (_) {
-    console.log('chufaba mongodb failed, port: ' + DB_PORT);
+    return console.log('chufaba mongodb failed, port: ' + DB_PORT);
 }).on('disconnected', function (_) {
-    console.log('chufaba mongodb disconnected, port: ' + DB_PORT);
-});;
+    return console.log('chufaba mongodb disconnected, port: ' + DB_PORT);
+});
 
 // 模块导出
 exports.Discovery = Discovery;
 exports.Journal = Journal;
 exports.Market = Market;
 exports.User = User;
+exports.SMS = SMS;
+//# sourceMappingURL=db.js.map

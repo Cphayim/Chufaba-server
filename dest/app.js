@@ -8,6 +8,10 @@ var _bodyParser = require('body-parser');
 
 var _bodyParser2 = _interopRequireDefault(_bodyParser);
 
+var _user = require('./routers/user');
+
+var _user2 = _interopRequireDefault(_user);
+
 var _manage = require('./routers/manage');
 
 var _manage2 = _interopRequireDefault(_manage);
@@ -15,10 +19,6 @@ var _manage2 = _interopRequireDefault(_manage);
 var _product = require('./routers/product');
 
 var _product2 = _interopRequireDefault(_product);
-
-var _user = require('./routers/user');
-
-var _user2 = _interopRequireDefault(_user);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -31,7 +31,7 @@ var app = (0, _express2.default)();
  * @Author: Cphayim 
  * @Date: 2017-04-18 17:42:40 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-30 21:49:26
+ * @Last Modified time: 2017-05-06 17:42:05
  */
 
 app.use(_bodyParser2.default.json());
@@ -46,9 +46,9 @@ app.all('*', function (req, res, next) {
 });
 
 // 路由挂载
+app.use('/user', _user2.default);
 app.use('/admin', _manage2.default);
 app.use('/product', _product2.default);
-app.use('/user', _user2.default);
 
 app.get('/', function (req, res) {
     // 301 重定向
@@ -61,3 +61,4 @@ app.get('/', function (req, res) {
 app.listen(3000, function (_) {
     return console.log('Chufaba Server is Running.');
 });
+//# sourceMappingURL=app.js.map

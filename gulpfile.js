@@ -3,7 +3,7 @@
  * @Author: Cphayim 
  * @Date: 2017-04-12 20:25:31 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-21 22:40:34
+ * @Last Modified time: 2017-05-06 17:46:17
  */
 
 const gulp = require('gulp');
@@ -33,16 +33,15 @@ gulp.task('default', ['js','copy']);
 // 编译 JavaScript ES6 -> ES5 
 gulp.task('js',function(){
     return gulp.src(paths.es6)
-        // .pipe(sourcemaps.init())
+        .pipe(sourcemaps.init())
         .pipe(babel({
             presets: ['es2015']
         }))
-        // .pipe(concat('ionic.app.min.js'))
         // .pipe(uglify({
         //     mangle: true, // 混淆所有变量名
         //     preserveComments: 'license' // 保留头部注释
         // }))
-        // .pipe(sourcemaps.write('./'))
+        .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./dest/'))
 });
 

@@ -29,7 +29,7 @@ var router = _express2.default.Router();
  * @Author: Cphayim 
  * @Date: 2017-04-21 20:56:29 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-05-01 22:27:44
+ * @Last Modified time: 2017-05-01 22:28:38
  */
 
 router.get('/good-list', function (req, res) {
@@ -80,3 +80,4 @@ router.get('/market', function (req, res) {
 
 // 导出模块
 exports.default = router;
+//# sourceMappingURL=product.js.map

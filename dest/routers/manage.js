@@ -50,3 +50,4 @@ router.post('/journal', function (req, res) {
 
 // 导出模块
 exports.default = router;
+//# sourceMappingURL=manage.js.map

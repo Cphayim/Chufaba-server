@@ -13,9 +13,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @Author: Cphayim 
  * @Date: 2017-04-30 21:21:24 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-04-30 21:27:15
+ * @Last Modified time: 2017-05-03 23:46:03
  */
 
+// 异常响应类，只包含响应方法
 var ErrRes = function () {
     function ErrRes() {
         _classCallCheck(this, ErrRes);
@@ -47,3 +48,4 @@ var ErrRes = function () {
 }();
 
 exports.default = new ErrRes();
+//# sourceMappingURL=err-res.js.map
