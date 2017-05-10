@@ -54,10 +54,38 @@ var router = _express2.default.Router();
  * @Author: Cphayim 
  * @Date: 2017-04-21 21:23:45 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-05-07 01:09:25
+ * @Last Modified time: 2017-05-09 14:14:22
  */
 
 router.use((0, _cookieParser2.default)());
+
+// access_token 鉴权 [预处理管道: 手机格式验证]
+router.post('/token', [phoneValidator], function (req, res) {
+    _db.User.findOne(req.body).then(function (data) {
+        if (data) {
+            // 通过
+            res.status(200).json({
+                code: 1000,
+                msg: 'auth passed'
+            });
+            // 更新最后登录时间
+            var last_time = new Date().getTime();
+            _db.User.update(data, {
+                $set: {
+                    last_time: last_time
+                }
+            }).then(function (_) {});
+        } else {
+            // 未通过
+            res.status(200).json({
+                code: 3030,
+                msg: 'invalid access_token'
+            });
+        }
+    }).catch(function (err) {
+        return _errRes2.default.dbQueryErr(res);
+    });
+});
 
 // 登录表单响应接口 [预处理管道: 手机格式验证、密码加密验证]
 router.post('/login', [phoneValidator, md5Validator], function (req, res) {
@@ -69,7 +97,7 @@ router.post('/login', [phoneValidator, md5Validator], function (req, res) {
         // 没找到账号 (data:null)
         if (!data) {
             res.status(200).json({
-                code: 'fail',
+                code: 3020,
                 msg: 'this user is not found'
             });
             return;
@@ -81,7 +109,7 @@ router.post('/login', [phoneValidator, md5Validator], function (req, res) {
         } else {
             // 返回密码错误
             res.status(200).json({
-                code: 'fail',
+                code: 3021,
                 msg: 'invalid password'
             });
         }
@@ -94,14 +122,14 @@ router.post('/login', [phoneValidator, md5Validator], function (req, res) {
 router.post('/register', [phoneValidator, repeatabilityValidator, md5Validator, vCodeValidator], function (req, res) {
     // 删掉请求体中的验证码的属性
     delete req.body.vCode;
-    // 创建用户对象
     var time = new Date().getTime();
+    // 创建用户对象
     var userData = req.body;
     // 生成 16位 密码盐
     userData.password_salt = getRandomCode(16);
     // 密码盐 + 密码 => MD5加密
     userData.password = (0, _md.MD5)(userData.password_salt + userData.password);
-    userData.avatar = '/avatar/default.jpg'; // 默认头像
+    userData.avatar = '/avatar/default.png'; // 默认头像
     userData.register_time = time; // 注册时间戳
     userData.last_time = -1; // 最后登录时间戳
     userData.permission = 0; // 权限等级
@@ -117,8 +145,8 @@ router.post('/register', [phoneValidator, repeatabilityValidator, md5Validator, 
 });
 
 /**
- * 登录响应 (登录/注册接口公用，登录/注册成功后回调该函数)
- * 生成 access_token(通行口令) 写入 cookie
+ * 登录/注册接口公用，登录/注册成功后回调该函数
+ * 生成 access_token(通行口令)
  * 返回登录成功的 json 包含用户基本信息
  * @param {Object} res 响应体对象
  * @param {Object} data 数据库用户数据
@@ -126,14 +154,16 @@ router.post('/register', [phoneValidator, repeatabilityValidator, md5Validator, 
 function loginResponse(res, data) {
     // 生成 32位 access_token
     var access_token = getRandomCode(32);
-    // 更新数据库中的 access_token (之前登录的设备下一次 token 鉴权将失败，需要重新登录)
+    var last_time = new Date().getTime();
+    // 更新数据库中的 access_token 和 登录时间
     _db.User.update(data, {
         $set: {
-            access_token: access_token
+            access_token: access_token,
+            last_time: last_time
         }
     }).then(function (_) {
         var expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-        // 设置 cookie (30天有效期) [app 端会跨域，无法使用 cookie]
+        // 网页端设置 cookie (30天有效期) [app 端会跨域，无法使用 cookie]
         res.cookie('phone', data.phone, {
             expires: expires
         });
@@ -142,7 +172,7 @@ function loginResponse(res, data) {
         });
         // 返回登录成功
         res.status(200).json({
-            code: 'ok',
+            code: 1000,
             msg: 'auth passed',
             userInfo: {
                 phone: data.phone,
@@ -160,7 +190,6 @@ function loginResponse(res, data) {
 router.post('/sms', [phoneValidator], function (req, res) {
     // 判断是否来自注册表单? 是则进行账号查重
     req.body.r && repeatabilityValidator(req, res);
-    console.log(123);
     var phone = req.body.phone;
     // 生成6位验证码
     var vCode = '';
@@ -170,7 +199,7 @@ router.post('/sms', [phoneValidator], function (req, res) {
     for (var i = 0; i < 6; i++) {
         vCode += (~~(Math.random() * 10)).toString();
     }
-    // 服务器端转发请求短信验证服务器下发短信验证码
+    // 服务器端转发请求到短信验证服务器下发短信验证码
     _superagent2.default.post('https://sms.yunpian.com/v2/sms/single_send.json')
     // 请求头设置
     // .set('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
@@ -193,6 +222,7 @@ router.post('/sms', [phoneValidator], function (req, res) {
                             vCode: vCode
                         }
                     }).then(function (data) {
+                        // 回调 sendSuccessResponse 函数
                         // 返回发送成功，并设置超时删除
                         sendSuccessResponse(res, {
                             phone: phone,
@@ -223,7 +253,7 @@ router.post('/sms', [phoneValidator], function (req, res) {
         } else {
             // 发送失败
             res.status(200).json({
-                code: 'err_sms',
+                code: 3004,
                 msg: 'sent failed'
             });
         }
@@ -237,7 +267,7 @@ router.post('/sms', [phoneValidator], function (req, res) {
 function sendSuccessResponse(res, queryObj, time) {
     // 返回前端，短信下发成功
     res.status(200).json({
-        code: 'ok',
+        code: 1000,
         msg: 'sent succeeded'
     });
     // 超时后，如果这条数据(根据vCode查找)还存在*就删除它
@@ -265,7 +295,7 @@ function phoneValidator(req, res, next) {
     var phone = req.body.phone;
     // 通过验证？回调下一个检测流函数：返回未通过验证的响应
     phoneRegexp.test(phone) ? next() : res.status(200).json({
-        code: 'phone',
+        code: 3001,
         msg: 'invalid phone number format'
     });
 }
@@ -276,9 +306,9 @@ function repeatabilityValidator(req, res, next) {
     _db.User.findOne({
         phone: phone
     }).then(function (data) {
-        // 是否没有数据? 回调下一个检测流函数: 返回号码重复
+        // 是否没有数据? (是否传入 next 函数?回调下一个检测流函数:不处理): 返回号码重复
         !data ? next ? next() : '' : res.status(200).json({
-            code: 'repeat',
+            code: 3011,
             msg: 'repeat phone number'
         });
     }).catch(function (err) {
@@ -291,7 +321,7 @@ function md5Validator(req, res, next) {
     var md5Regexp = /^[0-9a-z]{32}$/;
     var password = req.body.password;
     md5Regexp.test(password) ? next() : res.status(200).json({
-        code: 'md5',
+        code: 3003,
         msg: 'invalid password md5'
     });
 }
@@ -306,7 +336,7 @@ function vCodeValidator(req, res, next) {
             next(); // 回调下一个检测流函数
         } else {
             res.status(200).json({
-                code: 'vCode',
+                code: 3005,
                 msg: 'invalid vCode'
             });
         }

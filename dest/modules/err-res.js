@@ -13,7 +13,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @Author: Cphayim 
  * @Date: 2017-04-30 21:21:24 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-05-03 23:46:03
+ * @Last Modified time: 2017-05-07 18:46:19
  */
 
 // 异常响应类，只包含响应方法
@@ -28,7 +28,7 @@ var ErrRes = function () {
         // 数据库查询失败
         value: function dbQueryErr(res) {
             res.status(200).json({
-                code: 'err_db_query',
+                code: 2001,
                 msg: 'database query failed'
             });
         }
@@ -38,7 +38,7 @@ var ErrRes = function () {
         key: 'dbWriteErr',
         value: function dbWriteErr(res) {
             res.status(200).json({
-                code: 'err_db_write',
+                code: 2002,
                 msg: 'database write failed'
             });
         }
