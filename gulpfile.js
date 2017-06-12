@@ -3,7 +3,7 @@
  * @Author: Cphayim 
  * @Date: 2017-04-12 20:25:31 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-05-06 17:46:17
+ * @Last Modified time: 2017-06-13 00:23:19
  */
 
 const gulp = require('gulp');
@@ -42,13 +42,13 @@ gulp.task('js',function(){
         //     preserveComments: 'license' // 保留头部注释
         // }))
         .pipe(sourcemaps.write('./'))
-        .pipe(gulp.dest('./dest/'))
+        .pipe(gulp.dest('./dist/'))
 });
 
 // 复制其他文件
 gulp.task('copy',function(){
     return gulp.src(paths.static)
-        .pipe(gulp.dest('./dest/www/'));
+        .pipe(gulp.dest('./dist/www/'));
 });
 
 // 监视任务

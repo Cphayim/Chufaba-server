@@ -3,7 +3,7 @@
  * @Author: Cphayim 
  * @Date: 2017-04-21 21:23:45 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-05-09 14:14:22
+ * @Last Modified time: 2017-05-15 18:06:04
  */
 
 import express from 'express'
@@ -91,7 +91,7 @@ router.post('/login', [phoneValidator, md5Validator], (req, res) => {
     }).catch(err => errRes.dbQueryErr(res));
 });
 
-// 注册表单响应接口 [预处理管道: 手机号码验证、账号查重、密码加密验证]
+// 注册响应接口 [预处理管道: 手机号码验证、账号查重、密码加密验证]
 router.post('/register', [phoneValidator, repeatabilityValidator, md5Validator, vCodeValidator], (req, res) => {
     // 删掉请求体中的验证码的属性
     delete req.body.vCode;
@@ -256,7 +256,7 @@ function sendSuccessResponse(res, queryObj, time) {
  */
 // 手机号码格式验证
 function phoneValidator(req, res, next) {
-    const phoneRegexp = /^0?(13|14|15|18)[0-9]{9}$/;
+    const phoneRegexp = /^0?(13|15|17|18)[0-9]{9}$/;
     const phone = req.body.phone;
     // 通过验证？回调下一个检测流函数：返回未通过验证的响应
     phoneRegexp.test(phone) ? next() : res.status(200).json({
