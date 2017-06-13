@@ -3,7 +3,7 @@
  * @Author: Cphayim 
  * @Date: 2017-04-21 21:23:45 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-05-15 18:06:04
+ * @Last Modified time: 2017-05-13 23:35:11
  */
 
 import express from 'express'
@@ -157,72 +157,81 @@ function loginResponse(res, data) {
 
 // 短信验证码下发请求响应 [预处理管道: 手机格式验证]
 router.post('/sms', [phoneValidator], (req, res) => {
-    // 判断是否来自注册表单? 是则进行账号查重
-    req.body.r && repeatabilityValidator(req, res);
-    const phone = req.body.phone;
-    // 生成6位验证码
-    let vCode = '';
-    // 随机数取整 -> 字符串 -> 字符串长度补全 方案 (ES6 API, Babel 无法转换 padStart)
-    // vCode = (~~(Math.random() * 1000000)).toString().padStart(6,'0');
-    // 拼接 方案 (兼容)
-    for (let i = 0; i < 6; i++) {
-        vCode += (~~(Math.random() * 10)).toString();
-    }
-    // 服务器端转发请求到短信验证服务器下发短信验证码
-    request
-        .post('https://sms.yunpian.com/v2/sms/single_send.json')
-        // 请求头设置
-        // .set('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
-        .type('form')
-        .send({
-            apikey: config.SMS_APIKEY, // 短信验证服务器 developer apikey
-            mobile: phone, // 目标手机号码
-            text: `【${config.APP_NAME}】您的验证码是${vCode}。如非本人操作，请忽略本短信` // 短信模板
-        }).end((err, data) => {
-            if (data && data.body && data.body.code === 0) {
-                // 临时存储，写入数据库
-                // 查找有没有该用户的验证码记录？
-                // 存在就更新这条记录，不存在则插入一条
-                SMS.findOne({
-                    phone
-                }).then(data => {
-                    if (data) {
-                        // 更新数据
-                        SMS.update(data, {
-                            $set: {
-                                vCode
-                            }
-                        }).then(data => {
-                            // 回调 sendSuccessResponse 函数
-                            // 返回发送成功，并设置超时删除
-                            sendSuccessResponse(res, {
+    // 构建延迟对象，若为注册验证码请求，则在查重后调用下面逻辑
+    const defer = new Promise((resolve, reject) => {
+        // 判断是否来自注册表单? 是则进行账号查重
+        if (req.body.r) {
+            repeatabilityValidator(req, res, null, resolve);
+        } else {
+            resolve();
+        }
+    });
+    defer.then(_ => {
+        const phone = req.body.phone;
+        // 生成6位验证码
+        let vCode = '';
+        // 随机数取整 -> 字符串 -> 字符串长度补全 方案 (ES6 API, Babel 无法转换 padStart)
+        // vCode = (~~(Math.random() * 1000000)).toString().padStart(6,'0');
+        // 拼接 方案 (兼容)
+        for (let i = 0; i < 6; i++) {
+            vCode += (~~(Math.random() * 10)).toString();
+        }
+        // 服务器端转发请求到短信验证服务器下发短信验证码
+        request
+            .post('https://sms.yunpian.com/v2/sms/single_send.json')
+            // 请求头设置
+            // .set('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
+            .type('form')
+            .send({
+                apikey: config.SMS_APIKEY, // 短信验证服务器 developer apikey
+                mobile: phone, // 目标手机号码
+                text: `【${config.APP_NAME}】您的验证码是${vCode}。如非本人操作，请忽略本短信` // 短信模板
+            }).end((err, data) => {
+                if (data && data.body && data.body.code === 0) {
+                    // 临时存储，写入数据库
+                    // 查找有没有该用户的验证码记录？
+                    // 存在就更新这条记录，不存在则插入一条
+                    SMS.findOne({
+                        phone
+                    }).then(data => {
+                        if (data) {
+                            // 更新数据
+                            SMS.update(data, {
+                                $set: {
+                                    vCode
+                                }
+                            }).then(data => {
+                                // 回调 sendSuccessResponse 函数
+                                // 返回发送成功，并设置超时删除
+                                sendSuccessResponse(res, {
+                                    phone,
+                                    vCode
+                                }, 10 * 60 * 1000);
+                            }).catch(err => errRes.dbWriteErr(res));
+                        } else {
+                            // 插入一条
+                            const sms = new SMS({
                                 phone,
                                 vCode
-                            }, 10 * 60 * 1000);
-                        }).catch(err => errRes.dbWriteErr(res));
-                    } else {
-                        // 插入一条
-                        const sms = new SMS({
-                            phone,
-                            vCode
-                        });
-                        sms.save().then(data => {
-                            // 返回发送成功，并设置超时删除
-                            sendSuccessResponse(res, {
-                                phone,
-                                vCode
-                            }, 10 * 60 * 1000);
-                        }).catch(err => errRes.dbWriteErr(res));
-                    }
-                }).catch(err => errRes.dbQueryErr(res));
-            } else {
-                // 发送失败
-                res.status(200).json({
-                    code: 3004,
-                    msg: 'sent failed'
-                });
-            }
-        });
+                            });
+                            sms.save().then(data => {
+                                // 返回发送成功，并设置超时删除
+                                sendSuccessResponse(res, {
+                                    phone,
+                                    vCode
+                                }, 10 * 60 * 1000);
+                            }).catch(err => errRes.dbWriteErr(res));
+                        }
+                    }).catch(err => errRes.dbQueryErr(res));
+                } else {
+                    // 发送失败
+                    res.status(200).json({
+                        code: 3004,
+                        msg: 'sent failed'
+                    });
+                }
+            });
+    });
 });
 /**
  * 返回短信下发成功，并设置超时删除的定时器任务
@@ -265,7 +274,7 @@ function phoneValidator(req, res, next) {
     });
 }
 // 号码查重 (用于注册表单响应)
-function repeatabilityValidator(req, res, next) {
+function repeatabilityValidator(req, res, next, resolve) {
     const phone = req.body.phone;
     // 数据库查询
     User.findOne({
@@ -275,7 +284,8 @@ function repeatabilityValidator(req, res, next) {
         !data ? (next ? next() : '') : res.status(200).json({
             code: 3011,
             msg: 'repeat phone number'
-        })
+        });
+        (resolve && !data) && resolve();
     }).catch(err => {
         errRes.dbQueryErr(res);
     });

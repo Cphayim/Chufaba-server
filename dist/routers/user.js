@@ -54,7 +54,7 @@ var router = _express2.default.Router();
  * @Author: Cphayim 
  * @Date: 2017-04-21 21:23:45 
  * @Last Modified by: Cphayim
- * @Last Modified time: 2017-05-09 14:14:22
+ * @Last Modified time: 2017-06-13 23:00:26
  */
 
 router.use((0, _cookieParser2.default)());
@@ -118,7 +118,7 @@ router.post('/login', [phoneValidator, md5Validator], function (req, res) {
     });
 });
 
-// 注册表单响应接口 [预处理管道: 手机号码验证、账号查重、密码加密验证]
+// 注册响应接口 [预处理管道: 手机号码验证、账号查重、密码加密验证]
 router.post('/register', [phoneValidator, repeatabilityValidator, md5Validator, vCodeValidator], function (req, res) {
     // 删掉请求体中的验证码的属性
     delete req.body.vCode;
@@ -188,75 +188,84 @@ function loginResponse(res, data) {
 
 // 短信验证码下发请求响应 [预处理管道: 手机格式验证]
 router.post('/sms', [phoneValidator], function (req, res) {
-    // 判断是否来自注册表单? 是则进行账号查重
-    req.body.r && repeatabilityValidator(req, res);
-    var phone = req.body.phone;
-    // 生成6位验证码
-    var vCode = '';
-    // 随机数取整 -> 字符串 -> 字符串长度补全 方案 (ES6 API, Babel 无法转换 padStart)
-    // vCode = (~~(Math.random() * 1000000)).toString().padStart(6,'0');
-    // 拼接 方案 (兼容)
-    for (var i = 0; i < 6; i++) {
-        vCode += (~~(Math.random() * 10)).toString();
-    }
-    // 服务器端转发请求到短信验证服务器下发短信验证码
-    _superagent2.default.post('https://sms.yunpian.com/v2/sms/single_send.json')
-    // 请求头设置
-    // .set('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
-    .type('form').send({
-        apikey: _config2.default.SMS_APIKEY, // 短信验证服务器 developer apikey
-        mobile: phone, // 目标手机号码
-        text: '\u3010' + _config2.default.APP_NAME + '\u3011\u60A8\u7684\u9A8C\u8BC1\u7801\u662F' + vCode + '\u3002\u5982\u975E\u672C\u4EBA\u64CD\u4F5C\uFF0C\u8BF7\u5FFD\u7565\u672C\u77ED\u4FE1' // 短信模板
-    }).end(function (err, data) {
-        if (data && data.body && data.body.code === 0) {
-            // 临时存储，写入数据库
-            // 查找有没有该用户的验证码记录？
-            // 存在就更新这条记录，不存在则插入一条
-            _db.SMS.findOne({
-                phone: phone
-            }).then(function (data) {
-                if (data) {
-                    // 更新数据
-                    _db.SMS.update(data, {
-                        $set: {
-                            vCode: vCode
-                        }
-                    }).then(function (data) {
-                        // 回调 sendSuccessResponse 函数
-                        // 返回发送成功，并设置超时删除
-                        sendSuccessResponse(res, {
-                            phone: phone,
-                            vCode: vCode
-                        }, 10 * 60 * 1000);
-                    }).catch(function (err) {
-                        return _errRes2.default.dbWriteErr(res);
-                    });
-                } else {
-                    // 插入一条
-                    var sms = new _db.SMS({
-                        phone: phone,
-                        vCode: vCode
-                    });
-                    sms.save().then(function (data) {
-                        // 返回发送成功，并设置超时删除
-                        sendSuccessResponse(res, {
-                            phone: phone,
-                            vCode: vCode
-                        }, 10 * 60 * 1000);
-                    }).catch(function (err) {
-                        return _errRes2.default.dbWriteErr(res);
-                    });
-                }
-            }).catch(function (err) {
-                return _errRes2.default.dbQueryErr(res);
-            });
+    // 构建延迟对象，若为注册验证码请求，则在查重后调用下面逻辑
+    var defer = new Promise(function (resolve, reject) {
+        // 判断是否来自注册表单? 是则进行账号查重
+        if (req.body.r) {
+            repeatabilityValidator(req, res, null, resolve);
         } else {
-            // 发送失败
-            res.status(200).json({
-                code: 3004,
-                msg: 'sent failed'
-            });
+            resolve();
         }
+    });
+    defer.then(function (_) {
+        var phone = req.body.phone;
+        // 生成6位验证码
+        var vCode = '';
+        // 随机数取整 -> 字符串 -> 字符串长度补全 方案 (ES6 API, Babel 无法转换 padStart)
+        // vCode = (~~(Math.random() * 1000000)).toString().padStart(6,'0');
+        // 拼接 方案 (兼容)
+        for (var i = 0; i < 6; i++) {
+            vCode += (~~(Math.random() * 10)).toString();
+        }
+        // 服务器端转发请求到短信验证服务器下发短信验证码
+        _superagent2.default.post('https://sms.yunpian.com/v2/sms/single_send.json')
+        // 请求头设置
+        // .set('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
+        .type('form').send({
+            apikey: _config2.default.SMS_APIKEY, // 短信验证服务器 developer apikey
+            mobile: phone, // 目标手机号码
+            text: '\u3010' + _config2.default.APP_NAME + '\u3011\u60A8\u7684\u9A8C\u8BC1\u7801\u662F' + vCode + '\u3002\u5982\u975E\u672C\u4EBA\u64CD\u4F5C\uFF0C\u8BF7\u5FFD\u7565\u672C\u77ED\u4FE1' // 短信模板
+        }).end(function (err, data) {
+            if (data && data.body && data.body.code === 0) {
+                // 临时存储，写入数据库
+                // 查找有没有该用户的验证码记录？
+                // 存在就更新这条记录，不存在则插入一条
+                _db.SMS.findOne({
+                    phone: phone
+                }).then(function (data) {
+                    if (data) {
+                        // 更新数据
+                        _db.SMS.update(data, {
+                            $set: {
+                                vCode: vCode
+                            }
+                        }).then(function (data) {
+                            // 回调 sendSuccessResponse 函数
+                            // 返回发送成功，并设置超时删除
+                            sendSuccessResponse(res, {
+                                phone: phone,
+                                vCode: vCode
+                            }, 10 * 60 * 1000);
+                        }).catch(function (err) {
+                            return _errRes2.default.dbWriteErr(res);
+                        });
+                    } else {
+                        // 插入一条
+                        var sms = new _db.SMS({
+                            phone: phone,
+                            vCode: vCode
+                        });
+                        sms.save().then(function (data) {
+                            // 返回发送成功，并设置超时删除
+                            sendSuccessResponse(res, {
+                                phone: phone,
+                                vCode: vCode
+                            }, 10 * 60 * 1000);
+                        }).catch(function (err) {
+                            return _errRes2.default.dbWriteErr(res);
+                        });
+                    }
+                }).catch(function (err) {
+                    return _errRes2.default.dbQueryErr(res);
+                });
+            } else {
+                // 发送失败
+                res.status(200).json({
+                    code: 3004,
+                    msg: 'sent failed'
+                });
+            }
+        });
     });
 });
 /**
@@ -291,7 +300,7 @@ function sendSuccessResponse(res, queryObj, time) {
  */
 // 手机号码格式验证
 function phoneValidator(req, res, next) {
-    var phoneRegexp = /^0?(13|14|15|18)[0-9]{9}$/;
+    var phoneRegexp = /^0?(13|15|17|18)[0-9]{9}$/;
     var phone = req.body.phone;
     // 通过验证？回调下一个检测流函数：返回未通过验证的响应
     phoneRegexp.test(phone) ? next() : res.status(200).json({
@@ -300,7 +309,7 @@ function phoneValidator(req, res, next) {
     });
 }
 // 号码查重 (用于注册表单响应)
-function repeatabilityValidator(req, res, next) {
+function repeatabilityValidator(req, res, next, resolve) {
     var phone = req.body.phone;
     // 数据库查询
     _db.User.findOne({
@@ -311,6 +320,7 @@ function repeatabilityValidator(req, res, next) {
             code: 3011,
             msg: 'repeat phone number'
         });
+        resolve && !data && resolve();
     }).catch(function (err) {
         _errRes2.default.dbQueryErr(res);
     });
